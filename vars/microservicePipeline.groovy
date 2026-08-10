@@ -55,7 +55,7 @@ def call() {
                     image: jenkins/inbound-agent:3192.v713e3b_039fb_e-1
                     workingDir: /home/jenkins
                     resources:
-                      requests: { cpu: "200m", memory: "256Mi" }
+                      requests: { cpu: "100m", memory: "128Mi" }
                       limits:   { cpu: "500m", memory: "512Mi" }
                   - name: node
                     image: node:20-alpine
@@ -63,7 +63,7 @@ def call() {
                     command: [/bin/sh, -c, "cat"]
                     tty: true
                     resources:
-                      requests: { cpu: "500m", memory: "512Mi" }
+                      requests: { cpu: "100m", memory: "128Mi" }
                       limits:   { cpu: "1", memory: "1Gi" }
                   - name: golang
                     image: golang:1.22-alpine
@@ -71,7 +71,7 @@ def call() {
                     command: [/bin/sh, -c, "cat"]
                     tty: true
                     resources:
-                      requests: { cpu: "500m", memory: "512Mi" }
+                      requests: { cpu: "100m", memory: "128Mi"}
                       limits:   { cpu: "1", memory: "1Gi" }
                   - name: maven
                     image: maven:3.9-eclipse-temurin-17
@@ -79,7 +79,7 @@ def call() {
                     command: [/bin/sh, -c, "cat"]
                     tty: true
                     resources:
-                      requests: { cpu: "500m", memory: "512Mi" }
+                      requests: { cpu: "100m", memory: "128Mi" }
                       limits:   { cpu: "1", memory: "1Gi" }
                   - name: kaniko
                     image: gcr.io/kaniko-project/executor:v1.20.0-debug
@@ -87,7 +87,7 @@ def call() {
                     command: [/busybox/cat]
                     tty: true
                     resources:
-                      requests: { cpu: "1", memory: "1Gi" }
+                      requests: { cpu: "500m", memory: "512mi" }
                       limits:   { cpu: "4", memory: "4Gi" }
                   - name: trivy
                     image: aquasec/trivy:0.50.1
@@ -95,7 +95,7 @@ def call() {
                     command: [/bin/sh, -c, "cat"]
                     tty: true
                     resources:
-                      requests: { cpu: "500m", memory: "512Mi" }
+                      requests: { cpu: "100m", memory: "128Mi" }
                       limits:   { cpu: "1", memory: "1Gi" }
               """
           }

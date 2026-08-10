@@ -87,7 +87,7 @@ def call() {
                     command: [/busybox/cat]
                     tty: true
                     resources:
-                      requests: { cpu: "500m", memory: "512mi" }
+                      requests: { cpu: "500m", memory: "512Mi" }
                       limits:   { cpu: "4", memory: "4Gi" }
                   - name: trivy
                     image: aquasec/trivy:0.50.1

@@ -43,6 +43,7 @@ def call() {
                 labels:
                   app: jenkins-build-agent
               spec:
+                serviceAccountName: jenkins-ecr-builder-sa
                 restartPolicy: Never
                 securityContext:
                   runAsNonRoot: true

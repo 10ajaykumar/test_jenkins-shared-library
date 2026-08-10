@@ -52,7 +52,7 @@ def call() {
                   fsGroup: 1000
                 containers:
                   - name: jnlp
-                    image: jenkins/inbound-agent:3192.v713e3b_039fb_e-1
+                    image: jenkins/inbound-agent:jdk21
                     workingDir: /home/jenkins
                     resources:
                       requests: { cpu: "100m", memory: "128Mi" }

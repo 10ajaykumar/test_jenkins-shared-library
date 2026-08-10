@@ -220,12 +220,24 @@ def call() {
                                   switch (service.language?.toLowerCase()) {
                                       case 'nodejs':
                                           container('node') {
-                                              sh 'npm ci && npm test'
+                                              sh '''
+                                                  export npm_config_cache=/home/jenkins/.npm
+                                                  npm ci && npm test
+                                              '''
                                           }
                                           break
                                       case 'golang':
                                           container('golang') {
-                                              sh 'go test ./...'
+                                              sh '''
+                                                  export GOCACHE=/home/jenkins/.cache/go-build
+                                                  export GOPATH=/home/jenkins/go
+                                                  go test ./...
+                                              '''
+                                          }
+                                          break
+                                      case 'java':
+                                          container('maven') {
+                                              sh 'mvn clean test -Duser.home=/home/jenkins'
                                           }
                                           break
                                       default:
@@ -239,6 +251,7 @@ def call() {
                   }
               }
           }
+
 
           stage('OWASP Dependency Scan') {
               when {

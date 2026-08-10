@@ -116,9 +116,6 @@ def call() {
               """
           }
       }
-              """
-          }
-      }
 
       options {
           disableConcurrentBuilds()
@@ -209,7 +206,6 @@ def call() {
                   }
               }
           }
-
 
           stage('Build & Push Images') {
               when {

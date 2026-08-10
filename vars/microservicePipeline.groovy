@@ -97,6 +97,18 @@ def call() {
                     resources:
                       requests: { cpu: "100m", memory: "128Mi" }
                       limits:   { cpu: "1", memory: "1Gi" }
+
+                  - name: kubectl
+                    image: bitnami/kubectl:latest
+                    command:
+                      - /bin/sh
+                      - -c
+                      - cat
+                    tty: true
+                    workingDir: /home/jenkins
+                    volumeMounts:
+                      - name: workspace-volume
+                        mountPath: /home/jenkins
               """
           }
       }

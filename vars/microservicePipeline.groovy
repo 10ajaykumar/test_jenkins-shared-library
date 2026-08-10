@@ -1,23 +1,35 @@
 def call() {
   
-  
-  // Centralized mapping for Environments and Kubernetes Namespaces
-  def getEnvConfig() {
-      switch(env.BRANCH_NAME) {
-          case ['main', 'master']: return [env: 'prod',    namespace: 'prod-jenkins-agents']
-          case 'staging':          return [env: 'staging', namespace: 'staging-jenkins-agents']
-          case 'develop':          return [env: 'dev',     namespace: 'dev-jenkins-agents']
-          default:                 return [env: 'ci',      namespace: 'ci-jenkins-agents']
-      }
-  }
+   // Centralized mapping for Environments and Kubernetes Namespaces
+    def getEnvConfig = {
+        switch(env.BRANCH_NAME) {
+            case ['main', 'master']:
+                return [env: 'prod', namespace: 'prod-jenkins-agents']
 
-  // Helper function for consistent status and UI descriptions
-  def updateStageStatus(String stageName, String details = "") {
-      env.FAILED_STAGE = stageName
-      def prefix = env.DEPLOY_ENV ? "[${env.DEPLOY_ENV.toUpperCase()}]" : "[${env.BRANCH_NAME ?: 'INIT'}]"
-      def info = details ? " | ${details}" : ""
-      currentBuild.description = "${prefix} Stage: ${stageName}${info}"
-  }
+            case 'staging':
+                return [env: 'staging', namespace: 'staging-jenkins-agents']
+
+            case 'develop':
+                return [env: 'dev', namespace: 'dev-jenkins-agents']
+
+            default:
+                return [env: 'ci', namespace: 'ci-jenkins-agents']
+        }
+    }
+
+    // Helper function for consistent status and UI descriptions
+    def updateStageStatus = { String stageName, String details = "" ->
+        env.FAILED_STAGE = stageName
+
+        def prefix = env.DEPLOY_ENV ?
+            "[${env.DEPLOY_ENV.toUpperCase()}]" :
+            "[${env.BRANCH_NAME ?: 'INIT'}]"
+
+        def info = details ? " | ${details}" : ""
+
+        currentBuild.description =
+            "${prefix} Stage: ${stageName}${info}"
+    }
 
   pipeline {
       agent {

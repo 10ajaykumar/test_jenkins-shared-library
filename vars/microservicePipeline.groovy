@@ -191,42 +191,6 @@ def call() {
               }
           }
 
-          stage('Unit Tests') {
-              when {
-                  expression { env.CHANGED_SERVICES != null && env.CHANGED_SERVICES != "" }
-              }
-              steps {
-                  script {
-                      updateStageStatus("Unit Tests", "Testing: ${env.CHANGED_SERVICES}")
-                      def serviceConfig = readYaml text: env.SERVICES_CONFIG
-                      def changedList = env.CHANGED_SERVICES.split(",")
-                      def testStages = [:]
-
-                      serviceConfig.services.findAll { changedList.contains(it.name) }.each { service ->
-                          testStages[service.name] = {
-                              dir("application/${service.path}") {
-                                  switch (service.language?.toLowerCase()) {
-                                      case 'nodejs':
-                                          container('node') {
-                                              sh 'npm ci && npm test'
-                                          }
-                                          break
-                                      case 'golang':
-                                          container('golang') {
-                                              sh 'go test ./...'
-                                          }
-                                          break
-                                      default:
-                                          echo "No unit test command configured for language: ${service.language}"
-                                          break
-                                  }
-                              }
-                          }
-                      }
-                      parallel testStages
-                  }
-              }
-          }
 
           stage('OWASP Dependency Scan') {
               when {

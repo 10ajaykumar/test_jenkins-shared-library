@@ -191,7 +191,7 @@ def call() {
               }
           }
 
-
+          /*
           stage('OWASP Dependency Scan') {
               when {
                   expression { env.CHANGED_SERVICES != null && env.CHANGED_SERVICES != "" }
@@ -215,7 +215,7 @@ def call() {
                   }
               }
           }
-
+          */
 
 
           stage('DEBUG Kubernetes Exec Permission') {

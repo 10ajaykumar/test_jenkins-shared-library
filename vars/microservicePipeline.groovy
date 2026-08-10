@@ -56,7 +56,7 @@ def call() {
                     workingDir: /home/jenkins
                     env:
                       - name: JENKINS_WEB_SOCKET
-                        value: "false"
+                        value: "true"
                       - name: REMOTING_OPTS
                         value: "-noReconnectAfter 1d -pingIntervalCreation 30 -pingTimeoutCreation 60"
                     resources:
@@ -105,18 +105,17 @@ def call() {
                     resources:
                       requests: { cpu: "100m", memory: "128Mi" }
                       limits:   { cpu: "1", memory: "1Gi" }
-
                   - name: kubectl
                     image: bitnami/kubectl:latest
-                    command:
-                      - /bin/sh
-                      - -c
-                      - cat
-                    tty: true
                     workingDir: /home/jenkins
+                    command: [/bin/sh, -c, "cat"]
+                    tty: true
                     volumeMounts:
                       - name: workspace-volume
                         mountPath: /home/jenkins
+              """
+          }
+      }
               """
           }
       }

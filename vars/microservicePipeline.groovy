@@ -37,78 +37,99 @@ def call() {
               namespace getEnvConfig().namespace
               defaultContainer 'jnlp'
               yaml """
-              apiVersion: v1
-              kind: Pod
-              metadata:
-                labels:
-                  app: jenkins-build-agent
-              spec:
-                serviceAccountName: jenkins-ecr-builder-sa
-                restartPolicy: Never
-                securityContext:
-                  runAsNonRoot: true
-                  runAsUser: 1000
-                  runAsGroup: 1000
-                  fsGroup: 1000
-                containers:
-                  - name: jnlp
-                    image: jenkins/inbound-agent:jdk21
-                    imagePullPolicy: IfNotPresent
-                    workingDir: /home/jenkins
-                    resources:
-                      requests: { cpu: "100m", memory: "128Mi" }
-                      limits:   { cpu: "500m", memory: "512Mi" }
-                      
-                  - name: node
-                    image: node:20-alpine
-                    imagePullPolicy: IfNotPresent
-                    workingDir: /home/jenkins
-                    command: [/bin/sh, -c, "cat"]
-                    tty: true
-                    resources:
-                      requests: { cpu: "100m", memory: "128Mi" }
-                      limits:   { cpu: "1", memory: "1Gi" }
+apiVersion: v1
+                kind: Pod
+                metadata:
+                  labels:
+                    app: jenkins-build-agent
+                spec:
+                  serviceAccountName: jenkins-ecr-builder-sa
+                  restartPolicy: Never
+                  securityContext:
+                    runAsNonRoot: true
+                    runAsUser: 1000
+                    runAsGroup: 1000
+                    fsGroup: 1000
+                  containers:
+                    - name: jnlp
+                      image: jenkins/inbound-agent:jdk21
+                      imagePullPolicy: &pullPolicy IfNotPresent
+                      workingDir: /home/jenkins
+                      env:
+                        - name: JENKINS_WEB_SOCKET
+                          value: "true"
+                        - name: REMOTING_OPTS
+                          value: "-noReconnectAfter 1d -pingIntervalCreation 30 -pingTimeoutCreation 60"
+                      resources:
+                        requests: { cpu: "100m", memory: "128Mi" }
+                        limits:   { cpu: "500m", memory: "512Mi" }
 
-                  - name: golang
-                    image: golang:1.22-alpine
-                    imagePullPolicy: IfNotPresent
-                    workingDir: /home/jenkins
-                    command: [/bin/sh, -c, "cat"]
-                    tty: true
-                    resources:
-                      requests: { cpu: "100m", memory: "128Mi"}
-                      limits:   { cpu: "1", memory: "1Gi" }
+                    - name: node
+                      image: node:20-alpine
+                      imagePullPolicy: *pullPolicy
+                      workingDir: /home/jenkins
+                      command: [/bin/sh, -c, "cat"]
+                      tty: true
+                      env:
+                        - name: npm_config_cache
+                          value: "/home/jenkins/.npm"
+                      resources:
+                        requests: { cpu: "100m", memory: "128Mi" }
+                        limits:   { cpu: "1", memory: "1Gi" }
 
-                  - name: maven
-                    image: maven:3.9-eclipse-temurin-17
-                    imagePullPolicy: IfNotPresent
-                    workingDir: /home/jenkins
-                    command: [/bin/sh, -c, "cat"]
-                    tty: true
-                    resources:
-                      requests: { cpu: "100m", memory: "128Mi" }
-                      limits:   { cpu: "1", memory: "1Gi" }
+                    - name: golang
+                      image: golang:1.22-alpine
+                      imagePullPolicy: *pullPolicy
+                      workingDir: /home/jenkins
+                      command: [/bin/sh, -c, "cat"]
+                      tty: true
+                      env:
+                        - name: GOCACHE
+                          value: "/home/jenkins/.cache/go-build"
+                        - name: GOPATH
+                          value: "/home/jenkins/go"
+                      resources:
+                        requests: { cpu: "100m", memory: "128Mi" }
+                        limits:   { cpu: "1", memory: "1Gi" }
 
-                  - name: kaniko
-                    image: gcr.io/kaniko-project/executor:v1.20.0-debug
-                    imagePullPolicy: IfNotPresent
-                    workingDir: /home/jenkins
-                    command: [/busybox/cat]
-                    tty: true
-                    resources:
-                      requests: { cpu: "500m", memory: "512Mi" }
-                      limits:   { cpu: "4", memory: "4Gi" }
+                    - name: maven
+                      image: maven:3.9-eclipse-temurin-17
+                      imagePullPolicy: *pullPolicy
+                      workingDir: /home/jenkins
+                      command: [/bin/sh, -c, "cat"]
+                      tty: true
+                      env:
+                        - name: MAVEN_OPTS
+                          value: "-Duser.home=/home/jenkins"
+                      resources:
+                        requests: { cpu: "100m", memory: "128Mi" }
+                        limits:   { cpu: "1", memory: "1Gi" }
 
-                  - name: trivy
-                    image: aquasec/trivy:0.50.1
-                    imagePullPolicy: IfNotPresent
-                    workingDir: /home/jenkins
-                    command: [/bin/sh, -c, "cat"]
-                    tty: true
-                    resources:
-                      requests: { cpu: "100m", memory: "128Mi" }
-                      limits:   { cpu: "1", memory: "1Gi" }
-              """
+                    - name: kaniko
+                      image: gcr.io/kaniko-project/executor:v1.20.0-debug
+                      imagePullPolicy: *pullPolicy
+                      workingDir: /home/jenkins
+                      command: [/busybox/sh, -c, "cat"]
+                      tty: true
+                      securityContext:
+                        runAsUser: 0
+                        runAsNonRoot: false
+                      resources:
+                        requests: { cpu: "500m", memory: "512Mi" }
+                        limits:   { cpu: "4", memory: "4Gi" }
+
+                    - name: trivy
+                      image: aquasec/trivy:0.50.1
+                      imagePullPolicy: *pullPolicy
+                      workingDir: /home/jenkins
+                      command: [/bin/sh, -c, "cat"]
+                      tty: true
+                      env:
+                        - name: TRIVY_CACHE_DIR
+                          value: "/home/jenkins/.cache/trivy"
+                      resources:
+                        requests: { cpu: "100m", memory: "128Mi" }
+                        limits:   { cpu: "1", memory: "1Gi" }              """
           }
       }
 

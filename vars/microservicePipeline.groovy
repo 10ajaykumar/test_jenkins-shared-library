@@ -1,6 +1,6 @@
 def call() {
   
-   // Centralized mapping for Environments and Kubernetes Namespaces
+    // Centralized mapping for Environments and Kubernetes Namespaces
     def getEnvConfig = {
         switch(env.BRANCH_NAME) {
             case ['main', 'master']:
@@ -54,6 +54,11 @@ def call() {
                   - name: jnlp
                     image: jenkins/inbound-agent:jdk21
                     workingDir: /home/jenkins
+                    env:
+                      - name: JENKINS_WEB_SOCKET
+                        value: "false"
+                      - name: REMOTING_OPTS
+                        value: "-noReconnectAfter 1d -pingIntervalCreation 30 -pingTimeoutCreation 60"
                     resources:
                       requests: { cpu: "100m", memory: "128Mi" }
                       limits:   { cpu: "500m", memory: "512Mi" }
@@ -86,6 +91,9 @@ def call() {
                     workingDir: /home/jenkins
                     command: [/busybox/cat]
                     tty: true
+                    securityContext:
+                      runAsUser: 0
+                      runAsNonRoot: false
                     resources:
                       requests: { cpu: "500m", memory: "512Mi" }
                       limits:   { cpu: "4", memory: "4Gi" }
@@ -227,6 +235,7 @@ def call() {
                                   --dockerfile=${WORKSPACE}/application/${service.path}/Dockerfile \
                                   --destination=${ECR_REGISTRY}/${ecrRepo}:${IMAGE_TAG} \
                                   --destination=${ECR_REGISTRY}/${ecrRepo}:latest \
+                                  --verbosity=info \
                                   --cleanup \
                                   --cache=true
                               """

@@ -195,7 +195,7 @@ def call() {
               steps {
                   withCredentials([
                       file(
-                          credentialsId: 'jenkins-eks-kubeconfig',
+                          credentialsId: 'eks-jenkins-kubeconfig',
                           variable: 'KUBECONFIG_FILE'
                       )
                   ]) {

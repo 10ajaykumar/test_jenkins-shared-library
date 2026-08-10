@@ -214,6 +214,10 @@ def call() {
               steps {
                   container('kaniko') {
                       script {
+                              sh """
+                                pwd
+                              """
+
                           updateStageStatus("Build & Push Images", "Kaniko building: ${env.CHANGED_SERVICES}")
                           def serviceConfig = readYaml text: env.SERVICES_CONFIG
                           def changedList = env.CHANGED_SERVICES.split(",")

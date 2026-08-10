@@ -55,11 +55,6 @@ def call() {
                     image: jenkins/inbound-agent:jdk21
                     imagePullPolicy: IfNotPresent
                     workingDir: /home/jenkins
-                    env:
-                      - name: JENKINS_WEB_SOCKET
-                        value: "true"
-                      - name: REMOTING_OPTS
-                        value: "-noReconnectAfter 1d -pingIntervalCreation 30 -pingTimeoutCreation 60"
                     resources:
                       requests: { cpu: "100m", memory: "128Mi" }
                       limits:   { cpu: "500m", memory: "512Mi" }

@@ -216,6 +216,47 @@ def call() {
               }
           }
 
+
+
+          stage('DEBUG Kubernetes Exec Permission') {
+              steps {
+                  withCredentials([
+                      file(
+                          credentialsId: 'jenkins-eks-kubeconfig',
+                          variable: 'KUBECONFIG_FILE'
+                      )
+                  ]) {
+                      sh '''
+                          echo "Testing Jenkins Kubernetes credential"
+
+                          kubectl \
+                            --kubeconfig "$KUBECONFIG_FILE" \
+                            auth can-i get pods \
+                            -n prod-jenkins-agents
+
+                          kubectl \
+                            --kubeconfig "$KUBECONFIG_FILE" \
+                            auth can-i create pods/exec \
+                            -n prod-jenkins-agents
+                      '''
+                  }
+              }
+          }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
           stage('Build & Push Images') {
               when {
                   allOf {

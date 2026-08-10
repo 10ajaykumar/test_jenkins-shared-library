@@ -53,44 +53,60 @@ def call() {
                 containers:
                   - name: jnlp
                     image: jenkins/inbound-agent:jdk21
+                    imagePullPolicy: IfNotPresent
                     workingDir: /home/jenkins
+                    env:
+                      - name: JENKINS_WEB_SOCKET
+                        value: "true"
+                      - name: REMOTING_OPTS
+                        value: "-noReconnectAfter 1d -pingIntervalCreation 30 -pingTimeoutCreation 60"
                     resources:
                       requests: { cpu: "100m", memory: "128Mi" }
                       limits:   { cpu: "500m", memory: "512Mi" }
+                      
                   - name: node
                     image: node:20-alpine
+                    imagePullPolicy: IfNotPresent
                     workingDir: /home/jenkins
                     command: [/bin/sh, -c, "cat"]
                     tty: true
                     resources:
                       requests: { cpu: "100m", memory: "128Mi" }
                       limits:   { cpu: "1", memory: "1Gi" }
+
                   - name: golang
                     image: golang:1.22-alpine
+                    imagePullPolicy: IfNotPresent
                     workingDir: /home/jenkins
                     command: [/bin/sh, -c, "cat"]
                     tty: true
                     resources:
                       requests: { cpu: "100m", memory: "128Mi"}
                       limits:   { cpu: "1", memory: "1Gi" }
+
                   - name: maven
                     image: maven:3.9-eclipse-temurin-17
+                    imagePullPolicy: IfNotPresent
                     workingDir: /home/jenkins
                     command: [/bin/sh, -c, "cat"]
                     tty: true
                     resources:
                       requests: { cpu: "100m", memory: "128Mi" }
                       limits:   { cpu: "1", memory: "1Gi" }
+
                   - name: kaniko
                     image: gcr.io/kaniko-project/executor:v1.20.0-debug
+                    imagePullPolicy: IfNotPresent
                     workingDir: /home/jenkins
                     command: [/busybox/cat]
                     tty: true
                     resources:
                       requests: { cpu: "500m", memory: "512Mi" }
                       limits:   { cpu: "4", memory: "4Gi" }
+
                   - name: trivy
                     image: aquasec/trivy:0.50.1
+                    imagePullPolicy: IfNotPresent
                     workingDir: /home/jenkins
                     command: [/bin/sh, -c, "cat"]
                     tty: true

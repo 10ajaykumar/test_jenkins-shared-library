@@ -191,33 +191,6 @@ def call() {
               }
           }
 
-          /*
-          stage('OWASP Dependency Scan') {
-              when {
-                  expression { env.CHANGED_SERVICES != null && env.CHANGED_SERVICES != "" }
-              }
-              steps {
-                  script {
-                      updateStageStatus("OWASP Dependency Scan", "Scanning dependencies for: ${env.CHANGED_SERVICES}")
-                      def serviceConfig = readYaml text: env.SERVICES_CONFIG
-                      def changedList = env.CHANGED_SERVICES.split(",")
-                      def dependencyScans = [:]
-
-                      serviceConfig.services.findAll { changedList.contains(it.name) }.each { service ->
-                          dependencyScans[service.name] = {
-                              dir("application/${service.path}") {
-                                  dependencyCheck additionalArguments: "--scan ./ --out ./ --disableYarnAudit --disableNodeAudit", odcInstallation: 'DP-Check'
-                              }
-                          }
-                      }
-                      parallel dependencyScans
-                      dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
-                  }
-              }
-          }
-          */
-
-
           stage('DEBUG Kubernetes Exec Permission') {
               steps {
                   withCredentials([

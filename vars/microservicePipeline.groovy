@@ -122,7 +122,7 @@ def call() {
       environment {
           APP_REPO           = "https://github.com/10ajaykumar/test_travelbooking.git"
           GITOPS_REPO        = "https://github.com/10ajaykumar/test_travelbooking-gitops.git"
-          GIT_CREDENTIALS    = "github-user"
+          GIT_CREDENTIALS    = "github-creds"
           AWS_ACCOUNT_ID     = "605199373656"
           AWS_DEFAULT_REGION = "us-east-1"
           ECR_REGISTRY       = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"

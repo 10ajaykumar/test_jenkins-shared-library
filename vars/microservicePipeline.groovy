@@ -48,13 +48,13 @@ def call() {
 
                 # Pod-level security — applies to all containers
                 # EXCEPT where overridden at container level
-                securityContext:
-                  runAsNonRoot: true
-                  runAsUser: 1000
-                  runAsGroup: 1000
-                  fsGroup: 1000
-                  seccompProfile:
-                    type: RuntimeDefault
+                #securityContext:
+                 # runAsNonRoot: true
+                 # runAsUser: 1000
+                  #runAsGroup: 1000
+                  #fsGroup: 1000
+                  #seccompProfile:
+                   # type: RuntimeDefault
 
                 containers:
                   - name: jnlp

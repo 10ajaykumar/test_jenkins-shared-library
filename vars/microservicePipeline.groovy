@@ -45,6 +45,9 @@ def call() {
               spec:
                 serviceAccountName: jenkins-ecr-builder-sa
                 restartPolicy: Never
+
+                # Pod-level security — applies to all containers
+                # EXCEPT where overridden at container level
                 securityContext:
                   runAsNonRoot: true
                   runAsUser: 1000
@@ -52,13 +55,35 @@ def call() {
                   fsGroup: 1000
                   seccompProfile:
                     type: RuntimeDefault
-                containers:
 
+                # Init container creates required directories
+                initContainers:
+                  - name: init-kaniko-config
+                    image: busybox:1.36
+                    command:
+                      - sh
+                      - -c
+                      - |
+                        mkdir -p /root-home/.ecr
+                        mkdir -p /kaniko-docker/.docker
+                        chmod 755 /root-home/.ecr
+                        chmod 755 /kaniko-docker/.docker
+                        echo "Kaniko config dirs created"
+                    securityContext:
+                      runAsUser: 0
+                      runAsNonRoot: false
+                      allowPrivilegeEscalation: false
+                    volumeMounts:
+                      - name: kaniko-ecr-config
+                        mountPath: /root-home/.ecr
+                      - name: kaniko-docker-config
+                        mountPath: /kaniko-docker/.docker
+
+                containers:
                   - name: jnlp
                     image: jenkins/inbound-agent:jdk21
                     imagePullPolicy: IfNotPresent
                     workingDir: /home/jenkins
-
                     securityContext:
                       allowPrivilegeEscalation: false
                       capabilities:
@@ -67,7 +92,6 @@ def call() {
                     resources:
                       requests: { cpu: "100m", memory: "128Mi" }
                       limits:   { cpu: "500m", memory: "512Mi" }
-                      
 
                   - name: node
                     image: node:20-alpine
@@ -75,7 +99,6 @@ def call() {
                     workingDir: /home/jenkins
                     command: [/bin/sh, -c, "cat"]
                     tty: true
-
                     securityContext:
                       allowPrivilegeEscalation: false
                       capabilities:
@@ -91,14 +114,13 @@ def call() {
                     workingDir: /home/jenkins
                     command: [/bin/sh, -c, "cat"]
                     tty: true
-
                     securityContext:
                       allowPrivilegeEscalation: false
                       capabilities:
                         drop:
                           - ALL
                     resources:
-                      requests: { cpu: "100m", memory: "128Mi"}
+                      requests: { cpu: "100m", memory: "128Mi" }
                       limits:   { cpu: "1", memory: "1Gi" }
 
                   - name: maven
@@ -107,7 +129,6 @@ def call() {
                     workingDir: /home/jenkins
                     command: [/bin/sh, -c, "cat"]
                     tty: true
-
                     securityContext:
                       allowPrivilegeEscalation: false
                       capabilities:
@@ -123,12 +144,23 @@ def call() {
                     workingDir: /home/jenkins
                     command: [/busybox/cat]
                     tty: true
-
                     securityContext:
+                      runAsUser: 0                  # ← kaniko MUST be root
+                      runAsNonRoot: false           # ← override pod-level
                       allowPrivilegeEscalation: false
                       capabilities:
                         drop:
                           - ALL
+                    env:
+                      - name: AWS_REGION
+                        value: us-east-1
+                      - name: AWS_DEFAULT_REGION
+                        value: us-east-1
+                    volumeMounts:
+                      - name: kaniko-ecr-config
+                        mountPath: /root/.ecr       # ← ECR credentials dir
+                      - name: kaniko-docker-config
+                        mountPath: /kaniko/.docker  # ← Docker config dir
                     resources:
                       requests: { cpu: "500m", memory: "512Mi" }
                       limits:   { cpu: "4", memory: "4Gi" }
@@ -137,20 +169,31 @@ def call() {
                     image: aquasec/trivy:0.50.1
                     imagePullPolicy: IfNotPresent
                     workingDir: /home/jenkins
-                    command: [/bin/sh, -c, "cat"]
+                    command: ["/bin/sh"]
+                    args: ["-c", "while true; do sleep 30; done"]
                     tty: true
-
                     securityContext:
                       allowPrivilegeEscalation: false
                       capabilities:
                         drop:
                           - ALL
-
+                    env:
+                      - name: TRIVY_NO_PROGRESS
+                        value: "true"
+                      - name: TRIVY_CACHE_DIR
+                        value: /home/jenkins/.cache/trivy
                     resources:
                       requests: { cpu: "100m", memory: "128Mi" }
                       limits:   { cpu: "1", memory: "1Gi" }
 
-            """
+                volumes:
+                  - name: kaniko-ecr-config
+                    emptyDir: {}
+                  - name: kaniko-docker-config
+                    emptyDir: {}
+                  - name: workspace-volume
+                    emptyDir: {}
+              """
           }
       }
 

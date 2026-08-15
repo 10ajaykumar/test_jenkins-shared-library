@@ -252,14 +252,30 @@ def call() {
                   }
               }
               steps {
-                  script {
-                      echo "Testing Jenkins default container exec"
+                  container('kaniko') {
+                      script {
+                              sh """
+                                pwd
+                              """
 
-                      sh '''
-                          echo "DEFAULT_CONTAINER_EXEC_OK"
-                          id
-                          pwd
-                      '''
+                          updateStageStatus("Build & Push Images", "Kaniko building: ${env.CHANGED_SERVICES}")
+                          def serviceConfig = readYaml text: env.SERVICES_CONFIG
+                          def changedList = env.CHANGED_SERVICES.split(",")
+
+                          serviceConfig.services.findAll { changedList.contains(it.name) }.each { service ->
+                              def ecrRepo = service.ecrRepo ?: "${env.DEPLOY_ENV}-${service.name}"
+
+                              sh """
+                                  /kaniko/executor \
+                                  --context=dir://${WORKSPACE}/application/${service.path} \
+                                  --dockerfile=${WORKSPACE}/application/${service.path}/Dockerfile \
+                                  --destination=${ECR_REGISTRY}/${ecrRepo}:${IMAGE_TAG} \
+                                  --destination=${ECR_REGISTRY}/${ecrRepo}:latest \
+                                  --cleanup \
+                                  --cache=true
+                              """
+                          }
+                      }
                   }
               }
           }

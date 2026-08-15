@@ -137,7 +137,8 @@ def call() {
                     image: aquasec/trivy:0.50.1
                     imagePullPolicy: IfNotPresent
                     workingDir: /home/jenkins
-                    command: [/bin/sh, -c, "cat"]
+                    command: ["/bin/sh"]     # ← change this
+                    args: ["-c", "cat"]      # ← add this separately
                     tty: true
 
                     securityContext:

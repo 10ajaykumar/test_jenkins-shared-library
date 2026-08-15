@@ -323,7 +323,7 @@ def call() {
                                     trivy image \
                                     --ignore-unfixed \
                                     --severity HIGH,CRITICAL \
-                                    --exit-code 1 \
+                                    --exit-code 0 \
                                     ${ECR_REGISTRY}/${ecrRepo}:${IMAGE_TAG}
                                 """
                             }

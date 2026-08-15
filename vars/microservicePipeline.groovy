@@ -291,7 +291,6 @@ def call() {
                                       --dockerfile=${WORKSPACE}/application/${service.path}/Dockerfile \
                                       --destination=${ECR_REGISTRY}/${ecrRepo}:${IMAGE_TAG} \
                                       --destination=${ECR_REGISTRY}/${ecrRepo}:latest \
-                                      --rootless=true \
                                       --cleanup \
                                       --cache=true
                               """

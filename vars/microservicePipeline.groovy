@@ -36,7 +36,7 @@ def call() {
           kubernetes {
               namespace getEnvConfig().namespace
               defaultContainer 'jnlp'
-             yaml """
+              yaml """
               apiVersion: v1
               kind: Pod
               metadata:
@@ -121,15 +121,12 @@ def call() {
                     workingDir: /workspace
                     command: [/busybox/cat]
                     tty: true
-                    # COMPLIANT SECURITY SETTINGS FOR EKS "RESTRICTED" POLICY
+                    # RUN AS ROOT (Requires 'baseline' or 'privileged' namespace permission from admin)
                     securityContext:
-                      runAsNonRoot: true
-                      runAsUser: 1000
-                      runAsGroup: 1000
-                      allowPrivilegeEscalation: false
-                      capabilities:
-                        drop:
-                          - ALL
+                      runAsNonRoot: false
+                      runAsUser: 0
+                      runAsGroup: 0
+                      allowPrivilegeEscalation: true
                     env:
                       - name: AWS_REGION
                         value: us-east-1
@@ -137,7 +134,7 @@ def call() {
                         value: us-east-1
                     volumeMounts:
                       - name: kaniko-ecr-config
-                        mountPath: /home/jenkins/.ecr       # Moved from /root to remain accessible under user 1000
+                        mountPath: /root/.ecr       
                       - name: kaniko-docker-config
                         mountPath: /kaniko/.docker  
                     resources:

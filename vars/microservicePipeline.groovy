@@ -56,7 +56,6 @@ def call() {
                   seccompProfile:
                     type: RuntimeDefault
 
-
                 containers:
                   - name: jnlp
                     image: jenkins/inbound-agent:jdk21
@@ -119,17 +118,14 @@ def call() {
                   - name: kaniko
                     image: gcr.io/kaniko-project/executor:v1.20.0-debug
                     imagePullPolicy: IfNotPresent
-                    workingDir: /home/jenkins
+                    workingDir: /workspace
                     command: [/busybox/cat]
                     tty: true
                     securityContext:
-                      runAsNonRoot: true
-                      runAsUser: 1000
-                      runAsGroup: 1000
-                      allowPrivilegeEscalation: false
-                      capabilities:
-                        drop:
-                          - ALL
+                      runAsNonRoot: false
+                      runAsUser: 0
+                      runAsGroup: 0
+                      allowPrivilegeEscalation: true
                     env:
                       - name: AWS_REGION
                         value: us-east-1
@@ -137,9 +133,9 @@ def call() {
                         value: us-east-1
                     volumeMounts:
                       - name: kaniko-ecr-config
-                        mountPath: /root/.ecr       # ← ECR credentials dir
+                        mountPath: /root/.ecr       
                       - name: kaniko-docker-config
-                        mountPath: /kaniko/.docker  # ← Docker config dir
+                        mountPath: /kaniko/.docker  
                     resources:
                       requests: { cpu: "500m", memory: "512Mi" }
                       limits:   { cpu: "4", memory: "4Gi" }

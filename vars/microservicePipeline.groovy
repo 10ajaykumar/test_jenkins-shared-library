@@ -46,9 +46,8 @@ def call() {
                   serviceAccountName: jenkins-ecr-builder-sa
                   restartPolicy: Never
 
-                  # Pod-level security defaults
+                  # Pod-level defaults (Removed runAsNonRoot: true from top level)
                   securityContext:
-                    runAsNonRoot: true
                     runAsUser: 1000
                     runAsGroup: 1000
                     fsGroup: 1000
@@ -61,6 +60,8 @@ def call() {
                       imagePullPolicy: IfNotPresent
                       workingDir: /home/jenkins
                       securityContext:
+                        runAsNonRoot: true
+                        runAsUser: 1000
                         allowPrivilegeEscalation: false
                         capabilities:
                           drop:
@@ -76,6 +77,8 @@ def call() {
                       command: [/bin/sh, -c, "cat"]
                       tty: true
                       securityContext:
+                        runAsNonRoot: true
+                        runAsUser: 1000
                         allowPrivilegeEscalation: false
                         capabilities:
                           drop:
@@ -91,6 +94,8 @@ def call() {
                       command: [/bin/sh, -c, "cat"]
                       tty: true
                       securityContext:
+                        runAsNonRoot: true
+                        runAsUser: 1000
                         allowPrivilegeEscalation: false
                         capabilities:
                           drop:
@@ -106,6 +111,8 @@ def call() {
                       command: [/bin/sh, -c, "cat"]
                       tty: true
                       securityContext:
+                        runAsNonRoot: true
+                        runAsUser: 1000
                         allowPrivilegeEscalation: false
                         capabilities:
                           drop:
@@ -114,7 +121,7 @@ def call() {
                         requests: { cpu: "100m", memory: "128Mi" }
                         limits:   { cpu: "1", memory: "1Gi" }
 
-                    # Kaniko running as root inside privileged agent namespace
+                    # Kaniko container runs as root without pod-level runAsNonRoot blocking it
                     - name: kaniko
                       image: gcr.io/kaniko-project/executor:v1.20.0-debug
                       imagePullPolicy: IfNotPresent
@@ -148,6 +155,8 @@ def call() {
                       args: ["-c", "while true; do sleep 30; done"]
                       tty: true
                       securityContext:
+                        runAsNonRoot: true
+                        runAsUser: 1000
                         allowPrivilegeEscalation: false
                         capabilities:
                           drop:

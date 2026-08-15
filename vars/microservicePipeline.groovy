@@ -34,7 +34,7 @@ def call() {
                   labels:
                     app: jenkins-build-agent
                 spec:
-                  serviceAccountName: jenkins-orchestrator-sa
+                  serviceAccountName: jenkins-ecr-builder-sa
 
                   securityContext:
                     runAsNonRoot: true

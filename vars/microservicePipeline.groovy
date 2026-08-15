@@ -118,30 +118,24 @@ def call() {
                   - name: kaniko
                     image: gcr.io/kaniko-project/executor:v1.20.0-debug
                     imagePullPolicy: IfNotPresent
-                    workingDir: /workspace
+                    workingDir: /home/jenkins
                     command: [/busybox/cat]
                     tty: true
-
                     securityContext:
-                      runAsNonRoot: true
-                      runAsUser: 1000
-                      runAsGroup: 1000
-                      allowPrivilegeEscalation: false
-                      capabilities:
-                        drop:
-                          - ALL
-
+                      runAsUser: 0
+                      allowPrivilegeEscalation: true
                     env:
                       - name: AWS_REGION
                         value: us-east-1
                       - name: AWS_DEFAULT_REGION
                         value: us-east-1
-
                     volumeMounts:
                       - name: kaniko-ecr-config
                         mountPath: /root/.ecr
                       - name: kaniko-docker-config
                         mountPath: /kaniko/.docker
+                      - name: workspace-volume
+                        mountPath: /home/jenkins
                     resources:
                       requests: { cpu: "500m", memory: "512Mi" }
                       limits:   { cpu: "4", memory: "4Gi" }
@@ -293,10 +287,6 @@ def call() {
               steps {
                   container('kaniko') {
                       script {
-                              sh """
-                                pwd
-                              """
-
                           updateStageStatus("Build & Push Images", "Kaniko building: ${env.CHANGED_SERVICES}")
                           def serviceConfig = readYaml text: env.SERVICES_CONFIG
                           def changedList = env.CHANGED_SERVICES.split(",")
@@ -310,7 +300,6 @@ def call() {
                                       --dockerfile=${WORKSPACE}/application/${service.path}/Dockerfile \
                                       --destination=${ECR_REGISTRY}/${ecrRepo}:${IMAGE_TAG} \
                                       --destination=${ECR_REGISTRY}/${ecrRepo}:latest \
-                                      --rootless=true \
                                       --cleanup \
                                       --cache=true
                               """

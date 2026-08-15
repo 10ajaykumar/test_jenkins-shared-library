@@ -268,6 +268,21 @@ def call() {
               }
           }
 
+
+          stage('Test Container Exec') {
+              steps {
+                  container('node') {
+                      sh '''
+                          echo "===== NODE CONTAINER EXEC TEST ====="
+                          id
+                          node --version
+                          echo "CONTAINER_EXEC_WORKS"
+                      '''
+                  }
+              }
+          }
+
+
           stage('Build & Push Images') {
               when {
                   allOf {

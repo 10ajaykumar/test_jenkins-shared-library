@@ -46,7 +46,7 @@ def call() {
                   serviceAccountName: jenkins-ecr-builder-sa
                   restartPolicy: Never
 
-                  # Strict Restricted PSS Pod Security Context
+                  # Pod-level security defaults
                   securityContext:
                     runAsNonRoot: true
                     runAsUser: 1000
@@ -114,25 +114,28 @@ def call() {
                         requests: { cpu: "100m", memory: "128Mi" }
                         limits:   { cpu: "1", memory: "1Gi" }
 
-                    - name: buildah
-                      image: quay.io/buildah/stable:v1.34.0
+                    # Kaniko running as root inside privileged agent namespace
+                    - name: kaniko
+                      image: gcr.io/kaniko-project/executor:v1.20.0-debug
                       imagePullPolicy: IfNotPresent
                       workingDir: /home/jenkins
-                      command: [/bin/sh, -c, "sleep 999999"]
+                      command: [/busybox/cat]
                       tty: true
                       securityContext:
-                        runAsNonRoot: true
-                        runAsUser: 1000
-                        runAsGroup: 1000
-                        allowPrivilegeEscalation: false
-                        capabilities:
-                          drop:
-                            - ALL
+                        runAsUser: 0
+                        allowPrivilegeEscalation: true
                       env:
                         - name: AWS_REGION
                           value: us-east-1
                         - name: AWS_DEFAULT_REGION
                           value: us-east-1
+                      volumeMounts:
+                        - name: kaniko-ecr-config
+                          mountPath: /root/.ecr
+                        - name: kaniko-docker-config
+                          mountPath: /kaniko/.docker
+                        - name: workspace-volume
+                          mountPath: /home/jenkins
                       resources:
                         requests: { cpu: "500m", memory: "512Mi" }
                         limits:   { cpu: "4", memory: "4Gi" }
@@ -159,6 +162,10 @@ def call() {
                         limits:   { cpu: "1", memory: "1Gi" }
 
                   volumes:
+                    - name: kaniko-ecr-config
+                      emptyDir: {}
+                    - name: kaniko-docker-config
+                      emptyDir: {}
                     - name: workspace-volume
                       emptyDir: {}
                 """
@@ -207,7 +214,6 @@ def call() {
                     script {
                         env.DEPLOY_ENV = getEnvConfig().env
 
-                        // Read configuration files ONCE into memory
                         env.OWNERS_CONFIG   = readFile('application/ci/service-owners.yaml')
                         env.SERVICES_CONFIG = readFile('application/services.yaml')
 
@@ -263,30 +269,23 @@ def call() {
                     }
                 }
                 steps {
-                    container('buildah') {
+                    container('kaniko') {
                         script {
-                            updateStageStatus("Build & Push Images", "Buildah building: ${env.CHANGED_SERVICES}")
+                            updateStageStatus("Build & Push Images", "Kaniko building: ${env.CHANGED_SERVICES}")
                             def serviceConfig = readYaml text: env.SERVICES_CONFIG
                             def changedList = env.CHANGED_SERVICES.split(",")
 
                             serviceConfig.services.findAll { changedList.contains(it.name) }.each { service ->
                                 def ecrRepo = service.ecrRepo ?: "${env.DEPLOY_ENV}-${service.name}"
-                                def contextDir = "${WORKSPACE}/application/${service.path}"
 
                                 sh """
-                                    # Authenticate to ECR via AWS CLI / IRSA login
-                                    aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | buildah login --username AWS --password-stdin ${ECR_REGISTRY}
-
-                                    # Build using VFS storage driver for unprivileged rootless operation
-                                    buildah bud --storage-driver=vfs \
-                                        -t ${ECR_REGISTRY}/${ecrRepo}:${IMAGE_TAG} \
-                                        -t ${ECR_REGISTRY}/${ecrRepo}:latest \
-                                        -f ${contextDir}/Dockerfile \
-                                        ${contextDir}
-
-                                    # Push built tags to AWS ECR
-                                    buildah push --storage-driver=vfs ${ECR_REGISTRY}/${ecrRepo}:${IMAGE_TAG}
-                                    buildah push --storage-driver=vfs ${ECR_REGISTRY}/${ecrRepo}:latest
+                                    /kaniko/executor \
+                                        --context=dir://${WORKSPACE}/application/${service.path} \
+                                        --dockerfile=${WORKSPACE}/application/${service.path}/Dockerfile \
+                                        --destination=${ECR_REGISTRY}/${ecrRepo}:${IMAGE_TAG} \
+                                        --destination=${ECR_REGISTRY}/${ecrRepo}:latest \
+                                        --cleanup \
+                                        --cache=true
                                 """
                             }
                         }
@@ -487,7 +486,7 @@ def call() {
                                         Image Tag     : ${env.IMAGE_TAG ?: 'N/A'}
                                         Services      : ${env.CHANGED_SERVICES ?: 'N/A'}
 
-                                        Please check logs.
+                                        Please check the attached logs.
 
                                         Build URL:
                                         ${env.BUILD_URL}

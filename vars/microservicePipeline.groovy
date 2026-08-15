@@ -245,7 +245,12 @@ def call() {
           }
 
           stage('Build & Push Images') {
-              ...
+              when {
+                  allOf {
+                      expression { env.DEPLOY_ENV != "ci" }
+                      expression { env.CHANGED_SERVICES != null && env.CHANGED_SERVICES != "" }
+                  }
+              }
               steps {
                   script {
                       echo "Testing Jenkins default container exec"

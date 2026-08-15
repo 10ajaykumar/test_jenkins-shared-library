@@ -145,8 +145,9 @@ def call() {
                     command: [/busybox/cat]
                     tty: true
                     securityContext:
-                      runAsUser: 0                  # ← kaniko MUST be root
-                      runAsNonRoot: false           # ← override pod-level
+                      runAsNonRoot: true
+                      runAsUser: 1000
+                      runAsGroup: 1000
                       allowPrivilegeEscalation: false
                       capabilities:
                         drop:
@@ -310,12 +311,13 @@ def call() {
 
                               sh """
                                   /kaniko/executor \
-                                  --context=dir://${WORKSPACE}/application/${service.path} \
-                                  --dockerfile=${WORKSPACE}/application/${service.path}/Dockerfile \
-                                  --destination=${ECR_REGISTRY}/${ecrRepo}:${IMAGE_TAG} \
-                                  --destination=${ECR_REGISTRY}/${ecrRepo}:latest \
-                                  --cleanup \
-                                  --cache=true
+                                      --context=dir://${WORKSPACE}/application/${service.path} \
+                                      --dockerfile=${WORKSPACE}/application/${service.path}/Dockerfile \
+                                      --destination=${ECR_REGISTRY}/${ecrRepo}:${IMAGE_TAG} \
+                                      --destination=${ECR_REGISTRY}/${ecrRepo}:latest \
+                                      --rootless=true \
+                                      --cleanup \
+                                      --cache=true
                               """
                           }
                       }

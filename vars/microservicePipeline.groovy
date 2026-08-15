@@ -50,6 +50,8 @@ def call() {
                   runAsUser: 1000
                   runAsGroup: 1000
                   fsGroup: 1000
+                  seccompProfile:
+                    type: RuntimeDefault
                 containers:
                   - name: jnlp
                     image: jenkins/inbound-agent:jdk21

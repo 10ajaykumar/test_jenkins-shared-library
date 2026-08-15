@@ -122,8 +122,13 @@ def call() {
                     command: [/busybox/cat]
                     tty: true
                     securityContext:
-                      runAsUser: 0
-                      allowPrivilegeEscalation: true
+                      runAsNonRoot: true
+                      runAsUser: 1000
+                      runAsGroup: 1000
+                      allowPrivilegeEscalation: false
+                      capabilities:
+                        drop:
+                          - ALL
                     env:
                       - name: AWS_REGION
                         value: us-east-1
@@ -258,20 +263,6 @@ def call() {
                           env.CHANGED_SERVICES = changedServices.collect { it.name }.join(",")
                           updateStageStatus("Detect Changed Services", "Changed: ${env.CHANGED_SERVICES}")
                       }
-                  }
-              }
-          }
-
-
-          stage('Test Container Exec') {
-              steps {
-                  container('node') {
-                      sh '''
-                          echo "===== NODE CONTAINER EXEC TEST ====="
-                          id
-                          node --version
-                          echo "CONTAINER_EXEC_WORKS"
-                      '''
                   }
               }
           }

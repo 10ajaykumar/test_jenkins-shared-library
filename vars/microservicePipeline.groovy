@@ -291,6 +291,10 @@ def call() {
                                       --dockerfile=${WORKSPACE}/application/${service.path}/Dockerfile \
                                       --destination=${ECR_REGISTRY}/${ecrRepo}:${IMAGE_TAG} \
                                       --destination=${ECR_REGISTRY}/${ecrRepo}:latest \
+                                      --ignore-path=/bin \
+                                      --ignore-path=/lib \
+                                      --ignore-path=/usr \
+                                      --ignore-path=/sbin \
                                       --cleanup \
                                       --cache=true
                               """

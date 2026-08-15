@@ -56,29 +56,6 @@ def call() {
                   seccompProfile:
                     type: RuntimeDefault
 
-                # Init container creates required directories
-                initContainers:
-                  - name: init-kaniko-config
-                    image: busybox:1.36
-                    command:
-                      - sh
-                      - -c
-                      - |
-                        mkdir -p /root-home/.ecr
-                        mkdir -p /kaniko-docker/.docker
-                        chmod 755 /root-home/.ecr
-                        chmod 755 /kaniko-docker/.docker
-                        echo "Kaniko config dirs created"
-                    securityContext:
-                      runAsUser: 0
-                      runAsNonRoot: false
-                      allowPrivilegeEscalation: false
-                    volumeMounts:
-                      - name: kaniko-ecr-config
-                        mountPath: /root-home/.ecr
-                      - name: kaniko-docker-config
-                        mountPath: /kaniko-docker/.docker
-
                 containers:
                   - name: jnlp
                     image: jenkins/inbound-agent:jdk21

@@ -53,20 +53,34 @@ def call() {
                   seccompProfile:
                     type: RuntimeDefault
                 containers:
+
                   - name: jnlp
                     image: jenkins/inbound-agent:jdk21
                     imagePullPolicy: IfNotPresent
                     workingDir: /home/jenkins
+
+                    securityContext:
+                      allowPrivilegeEscalation: false
+                      capabilities:
+                        drop:
+                          - ALL
                     resources:
                       requests: { cpu: "100m", memory: "128Mi" }
                       limits:   { cpu: "500m", memory: "512Mi" }
                       
+
                   - name: node
                     image: node:20-alpine
                     imagePullPolicy: IfNotPresent
                     workingDir: /home/jenkins
                     command: [/bin/sh, -c, "cat"]
                     tty: true
+
+                    securityContext:
+                      allowPrivilegeEscalation: false
+                      capabilities:
+                        drop:
+                          - ALL
                     resources:
                       requests: { cpu: "100m", memory: "128Mi" }
                       limits:   { cpu: "1", memory: "1Gi" }
@@ -77,6 +91,12 @@ def call() {
                     workingDir: /home/jenkins
                     command: [/bin/sh, -c, "cat"]
                     tty: true
+
+                    securityContext:
+                      allowPrivilegeEscalation: false
+                      capabilities:
+                        drop:
+                          - ALL
                     resources:
                       requests: { cpu: "100m", memory: "128Mi"}
                       limits:   { cpu: "1", memory: "1Gi" }
@@ -87,6 +107,12 @@ def call() {
                     workingDir: /home/jenkins
                     command: [/bin/sh, -c, "cat"]
                     tty: true
+
+                    securityContext:
+                      allowPrivilegeEscalation: false
+                      capabilities:
+                        drop:
+                          - ALL
                     resources:
                       requests: { cpu: "100m", memory: "128Mi" }
                       limits:   { cpu: "1", memory: "1Gi" }
@@ -97,6 +123,12 @@ def call() {
                     workingDir: /home/jenkins
                     command: [/busybox/cat]
                     tty: true
+
+                    securityContext:
+                      allowPrivilegeEscalation: false
+                      capabilities:
+                        drop:
+                          - ALL
                     resources:
                       requests: { cpu: "500m", memory: "512Mi" }
                       limits:   { cpu: "4", memory: "4Gi" }
@@ -107,6 +139,13 @@ def call() {
                     workingDir: /home/jenkins
                     command: [/bin/sh, -c, "cat"]
                     tty: true
+
+                    securityContext:
+                      allowPrivilegeEscalation: false
+                      capabilities:
+                        drop:
+                          - ALL
+
                     resources:
                       requests: { cpu: "100m", memory: "128Mi" }
                       limits:   { cpu: "1", memory: "1Gi" }

@@ -121,22 +121,27 @@ def call() {
                     workingDir: /workspace
                     command: [/busybox/cat]
                     tty: true
-                    # RUN AS ROOT (Requires 'baseline' or 'privileged' namespace permission from admin)
+
                     securityContext:
-                      runAsNonRoot: false
-                      runAsUser: 0
-                      runAsGroup: 0
-                      allowPrivilegeEscalation: true
+                      runAsNonRoot: true
+                      runAsUser: 1000
+                      runAsGroup: 1000
+                      allowPrivilegeEscalation: false
+                      capabilities:
+                        drop:
+                          - ALL
+
                     env:
                       - name: AWS_REGION
                         value: us-east-1
                       - name: AWS_DEFAULT_REGION
                         value: us-east-1
+
                     volumeMounts:
                       - name: kaniko-ecr-config
-                        mountPath: /root/.ecr       
+                        mountPath: /root/.ecr
                       - name: kaniko-docker-config
-                        mountPath: /kaniko/.docker  
+                        mountPath: /kaniko/.docker
                     resources:
                       requests: { cpu: "500m", memory: "512Mi" }
                       limits:   { cpu: "4", memory: "4Gi" }

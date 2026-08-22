@@ -4,16 +4,16 @@ def call() {
     def getEnvConfig = {
         switch(env.BRANCH_NAME) {
             case ['main', 'master']:
-                return [env: 'prod', namespace: 'prod-jenkins-agents']
+                return [env: 'prod', namespace: 'jenkins-prod']
 
             case 'staging':
-                return [env: 'staging', namespace: 'staging-jenkins-agents']
+                return [env: 'staging', namespace: 'jenkins-staging']
 
             case 'develop':
-                return [env: 'dev', namespace: 'dev-jenkins-agents']
+                return [env: 'dev', namespace: 'jenkins-ci']
 
             default:
-                return [env: 'ci', namespace: 'ci-jenkins-agents']
+                return [env: 'ci', namespace: 'jenkins-ci']
         }
     }
 
